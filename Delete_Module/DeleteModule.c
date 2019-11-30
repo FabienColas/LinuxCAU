@@ -45,7 +45,7 @@ int thread_fn(void)
         }
 
 	struct my_node *current_node; /* This will point on the actual data structures during the iteration */
-        struct list_head *p; /* Temporary variable needed to iterate; */
+        struct list_head *p, *q; /* Temporary variable needed to iterate; */
 
 	printk("Delete begins...\n");
         list_for_each_safe(p, q, &my_list) {
