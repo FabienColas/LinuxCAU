@@ -57,7 +57,8 @@ int search(void *args)
         for (i = 0; i < NUM_ITERS; i++) {
 		current_node = list_entry(p, struct my_node, list);
                 if (current_node->data == 99999) {
-                        printk("End Search\n");
+			printk("%d\n", current_node->data);
+			printk("End Search\n");
 			break;
 		}
 		p = p->next->next->next->next;
@@ -109,3 +110,5 @@ void __exit search_module_cleanup(void){
 
 module_init(search_module_init);
 module_exit(search_module_cleanup);
+
+MODULE_LICENSE("GPL");

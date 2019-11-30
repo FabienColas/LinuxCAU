@@ -6,6 +6,9 @@
 #include <linux/slab.h>
 #include <linux/sched.h>
 
+
+int find;
+
 enum CONSTANTS{
         NUM_THREADS = 4,
         NUM_ITERS = 100000/NUM_THREADS
@@ -57,9 +60,9 @@ int del(void *args)
         for (i = 0; i < NUM_ITERS; i++) {
                 current_node = list_entry(p, struct my_node, list);
                 if (current_node->data == 99999) {
-			kfree(current_node);
+			list_del(p);
                         printk("End Delete\n");
-                        break;
+			break;
                 }
                 p = p->next->next->next->next;
         }
@@ -69,7 +72,6 @@ int del(void *args)
 
 int __init delete_module_init(void){
         printk("Delete Module - Hello Module!\n");
-
         struct my_node *data = kmalloc(sizeof(struct my_node) * 100000,GFP_KERNEL);
         struct task_struct *threads[NUM_THREADS];
         struct params *params = kmalloc(sizeof(struct params) * NUM_THREADS,GFP_KERNEL);
@@ -94,10 +96,10 @@ int __init delete_module_init(void){
         printk("Start Delete\n");
 
         for (i = 0; i < NUM_THREADS; i++) {
-                params[i].segmentNb = i;
-                params[i].list = params[0].list;
-                threads[i] = kthread_run(&del, &params[i], "delete");
-        }
+	        params[i].segmentNb = i;
+	        params[i].list = params[0].list;
+	        threads[i] = kthread_run(&del, &params[i], "delete");
+	}
 
         printk("End\n");
 
@@ -111,5 +113,4 @@ void __exit delete_module_cleanup(void){
 module_init(delete_module_init);
 module_exit(delete_module_cleanup);
 
-
-
+MODULE_LICENSE("GPL");
