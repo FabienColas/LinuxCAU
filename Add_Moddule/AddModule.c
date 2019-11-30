@@ -24,7 +24,7 @@ struct params {
   int segmentNb;
 };
 
-int thread_fn(void *args)
+int add(void *args)
 {
         struct params *params = (struct params *)args;
 	int i;
@@ -43,11 +43,11 @@ int thread_fn(void *args)
         return 0;
 }
 
-int __init module_ass6_init(void)
+int __init add_module_init(void)
 {
-	printk("Assignment 6 - Insert Module!\n");
+	printk("Add Module - Hello Module!\n");
 	printk("Beginning");
-	
+
 	struct my_node *data = kmalloc(sizeof(struct my_node) * 100000,GFP_KERNEL);
 	struct task_struct *threads[NUM_THREADS];
 	struct params *params = kmalloc(sizeof(struct params) * NUM_THREADS,GFP_KERNEL);
@@ -57,7 +57,7 @@ int __init module_ass6_init(void)
 		init_completion(&params[i].comp);
 		params[i].data = &data[i * NUM_ITERS];
 		params[i].segmentNb = i;
-        	threads[i] = kthread_run(&thread_fn, &params[i], "thread_fn");
+        	threads[i] = kthread_run(&add, &params[i], "add");
 	}
 
 	for (i = 0; i < NUM_THREADS; i++) {
@@ -67,15 +67,15 @@ int __init module_ass6_init(void)
 	for (i = 1; i < NUM_THREADS; i++) {
 		list_splice(&params[i].list, &params[0].list);
 	}
-	printk("End\n");	
+	printk("End\n");
 	return 0;
 }
 
-void __exit module_ass6_cleanup(void){
-	printk("Assignment 6 - Bye Module!\n");
+void __exit add_module_cleanup(void){
+	printk("Add Module - Bye Module!\n");
 }
 
 
-module_init(module_ass6_init);
-module_exit(module_ass6_cleanup);
+module_init(add_module_init);
+module_exit(add_module_cleanup);
 MODULE_LICENSE("GPL");
