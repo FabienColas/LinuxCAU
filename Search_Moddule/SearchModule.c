@@ -19,7 +19,7 @@ struct my_node{
         int data;
 };
 
-int thread_fn(void)
+int search(void)
 {
         struct list_head my_list;
 
@@ -55,13 +55,13 @@ int thread_fn(void)
 	return 0;
 }
 
-int __init module_ass6_init(void){
-        printk("Assignment 6 - Insert Module!\n");
+int __init search_module_init(void){
+        printk("Search Module - Hello Module!\n");
         printk("Beginning");
-        thread1 = kthread_create(thread_fn(), NULL,"thread");
-        thread2 = kthread_create(thread_fn(), NULL,"thread");
-        thread3 = kthread_create(thread_fn(), NULL,"thread");
-        thread4 = kthread_create(thread_fn(), NULL,"thread");
+        thread1 = kthread_create(search(), NULL,"search");
+        thread2 = kthread_create(search(), NULL,"search");
+        thread3 = kthread_create(search(), NULL,"search");
+        thread4 = kthread_create(search(), NULL,"search");
         /*thread5 = kthread_create(thread_fn(), NULL,"thread");
         thread6 = kthread_create(thread_fn(), NULL,"thread");
         thread7 = kthread_create(thread_fn(), NULL,"thread");
@@ -91,9 +91,9 @@ int __init module_ass6_init(void){
         return 0;
 }
 
-void __exit module_ass6_cleanup(void){
-        printk("Assignment 6 - Bye Module!\n");
+void __exit search_module_cleanup(void){
+        printk("Search Module - Bye Module!\n");
 }
 
-module_init(module_ass6_init);
-module_exit(module_ass6_cleanup);
+module_init(search_module_init);
+module_exit(search_module_cleanup);

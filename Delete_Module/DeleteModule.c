@@ -19,7 +19,7 @@ struct my_node{
         int data;
 };
 
-int thread_fn(void)
+int del(void)
 {
         struct list_head my_list;
 
@@ -58,13 +58,13 @@ int thread_fn(void)
         return 0;
 }
 
-int __init module_ass6_init(void){
-        printk("Assignment 6 - Insert Module!\n");
+int __init delete_module_init(void){
+        printk("Delete Module - Hello Module!\n");
         printk("Beginning");
-        thread1 = kthread_create(thread_fn(), NULL,"thread");
-        thread2 = kthread_create(thread_fn(), NULL,"thread");
-        thread3 = kthread_create(thread_fn(), NULL,"thread");
-        thread4 = kthread_create(thread_fn(), NULL,"thread");
+        thread1 = kthread_create(del(), NULL,"delete");
+        thread2 = kthread_create(del(), NULL,"delete");
+        thread3 = kthread_create(del(), NULL,"delete");
+        thread4 = kthread_create(del(), NULL,"delete");
         /*thread5 = kthread_create(thread_fn(), NULL,"thread");
         thread6 = kthread_create(thread_fn(), NULL,"thread");
         thread7 = kthread_create(thread_fn(), NULL,"thread");
@@ -94,10 +94,10 @@ int __init module_ass6_init(void){
         return 0;
 }
 
-void __exit module_ass6_cleanup(void){
-        printk("Assignment 6 - Bye Module!\n");
+void __exit delete_module_cleanup(void){
+        printk("Delete Module - Bye Module!\n");
 }
 
-module_init(module_ass6_init);
-module_exit(module_ass6_cleanup);
+module_init(delete_module_init);
+module_exit(delete_module_cleanup);
 
