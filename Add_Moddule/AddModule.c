@@ -44,22 +44,6 @@ int thread_fn(void)
 		}*/
 	}
 
-	struct my_node *current_node; /* This will point on the actual data structures during the iteration; */
-        struct list_head *p; /* Temporary variable needed to iterate; */
-
-        list_for_each_entry(current_node, &my_list, list) {
-                if (current_node->data == 99999)
-                        printk("End Search\n");
-        }
-
-        printk("Delete begins...\n");
-        list_for_each_safe(p, q, &my_list) {
-                current_node = list_entry(p, struct my_node, list);
-                list_del(p);
-                kfree(current_node);
-        }
-        printk("Delete ends...\n");
-
 	return 0;
 }
 
