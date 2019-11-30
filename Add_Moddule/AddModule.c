@@ -6,10 +6,8 @@
 #include <linux/slab.h>
 #include <linux/sched.h>
 
-static struct task_struct *thread1, *thread2, *thread3, *thread4;// *thread5, *thread6, *thread7, *thread8, *thread9, *thread10;
-
-
 enum CONSTANTS{
+  //NUM_THREADS = 1,
 	NUM_THREADS = 4,
 	NUM_ITERS = 100000/NUM_THREADS
 };
@@ -19,76 +17,65 @@ struct my_node{
 	int data;
 };
 
-int add(void)
+struct params {
+  struct list_head list;
+  struct my_node *data;
+  struct completion comp;
+  int segmentNb;
+};
+
+int thread_fn(void *args)
 {
-	struct list_head my_list;
+        struct params *params = (struct params *)args;
+	int i;
 
 	/*initialize list*/
-	INIT_LIST_HEAD(&my_list);
+	INIT_LIST_HEAD(&params->list);
 
-	/*list element add*/
-	int i;
-	struct my_node *news = kmalloc(sizeof(struct my_node)*NUM_ITERS,GFP_KERNEL);
 
-	for(i=0; i<NUM_ITERS; i++)
+        for (i = 0; i < NUM_ITERS; i++)
 	{
+		struct my_node *new = &params->data[i + params->segmentNb * NUM_ITERS];
+		new->data = i + params->segmentNb * NUM_ITERS;
+        	list_add(&new->list, &params->list);
+	}
+	complete_and_exit(&params->comp, 0);
+        return 0;
+}
 
-		/*if(i==0) {
-			printk("Beginning, i=0");
-		}*/
-		struct my_node *new = &news[i];
-		new->data=i;
-		list_add(&new->list,&my_list);
-		/*if(i==24999) {
-			printk("End, i=24999");
-		}*/
+int __init module_ass6_init(void)
+{
+	printk("Assignment 6 - Insert Module!\n");
+	printk("Beginning");
+	
+	struct my_node *data = kmalloc(sizeof(struct my_node) * 100000,GFP_KERNEL);
+	struct task_struct *threads[NUM_THREADS];
+	struct params *params = kmalloc(sizeof(struct params) * NUM_THREADS,GFP_KERNEL);
+	int i;
+
+	for (i = 0; i < NUM_THREADS; i++) {
+		init_completion(&params[i].comp);
+		params[i].data = &data[i * NUM_ITERS];
+		params[i].segmentNb = i;
+        	threads[i] = kthread_run(&thread_fn, &params[i], "thread_fn");
 	}
 
+	for (i = 0; i < NUM_THREADS; i++) {
+	  wait_for_completion(&params[i].comp);
+	}
+
+	for (i = 1; i < NUM_THREADS; i++) {
+		list_splice(&params[i].list, &params[0].list);
+	}
+	printk("End\n");	
 	return 0;
 }
 
-int __init add_module_init(void){
-	printk("Add Module - Hello Module!\n");
-	printk("Beginning");
-	thread1 = kthread_create(add(), NULL,"add");
-	thread2 = kthread_create(add(), NULL,"add");
-	thread3 = kthread_create(add(), NULL,"add");
-	thread4 = kthread_create(add(), NULL,"add");
-	/*thread5 = kthread_create(thread_fn(), NULL,"thread");
-	thread6 = kthread_create(thread_fn(), NULL,"thread");
-	thread7 = kthread_create(thread_fn(), NULL,"thread");
-	thread8 = kthread_create(thread_fn(), NULL,"thread");
-	thread9 = kthread_create(thread_fn(), NULL,"thread");
-	thread10 = kthread_create(thread_fn(), NULL,"thread");
-*/
-	kthread_bind(thread1, NULL);
-	kthread_bind(thread2, NULL);
-	kthread_bind(thread3, NULL);
-	kthread_bind(thread4, NULL);
-/*	kthread_bind(thread5, NULL);
-	kthread_bind(thread6, NULL);
-	kthread_bind(thread7, NULL);
-	kthread_bind(thread8, NULL);
-	kthread_bind(thread9, NULL);
-	kthread_bind(thread10, NULL);
-*/
-
-	printk("End");
-
-	kthread_stop(thread1);
-	kthread_stop(thread2);
-	kthread_stop(thread3);
-	kthread_stop(thread4);
-
-	return 0;
-}
-
-void __exit add_module_cleanup(void){
-	printk("Add Module - Bye Module!\n");
+void __exit module_ass6_cleanup(void){
+	printk("Assignment 6 - Bye Module!\n");
 }
 
 
-
-
-module_init(add_module_init);
-module_exit(add_module_cleanup);
+module_init(module_ass6_init);
+module_exit(module_ass6_cleanup);
+MODULE_LICENSE("GPL");
