@@ -6,9 +6,6 @@
 #include <linux/slab.h>
 #include <linux/sched.h>
 
-static struct task_struct *thread1, *thread2, *thread3, *thread4;// *thread5, *thread6, *thread7, *threa$
-
-
 enum CONSTANTS{
         NUM_THREADS = 4,
         NUM_ITERS = 100000/NUM_THREADS
@@ -19,37 +16,51 @@ struct my_node{
         int data;
 };
 
-int search(void)
+struct params {
+  struct list_head list;
+  struct my_node *data;
+  struct completion comp;
+  int segmentNb;
+};
+
+int add(void *args)
 {
-        struct list_head my_list;
+        struct params *params = (struct params *)args;
+        int i;
 
         /*initialize list*/
-        INIT_LIST_HEAD(&my_list);
+        INIT_LIST_HEAD(&params->list);
 
-        /*list element add*/
-        int i;
-        struct my_node *news = kmalloc(sizeof(struct my_node)*NUM_ITERS,GFP_KERNEL);
 
-        for(i=0; i<NUM_ITERS; i++)
+        for (i = 0; i < NUM_ITERS; i++)
         {
-
-                /*if(i==0) {
-                        printk("Beginning, i=0");
-                }*/
-                struct my_node *new = &news[i];
-                new->data=i;
-                list_add(&new->list,&my_list);
-                /*if(i==24999) {
-                        printk("End, i=24999");
-                }*/
+                struct my_node *new = &params->data[i + params->segmentNb * NUM_ITERS];
+                new->data = i + params->segmentNb * NUM_ITERS;
+                list_add(&new->list, &params->list);
         }
+        complete_and_exit(&params->comp, 0);
+        return 0;
+}
 
+int search(void *args)
+{
+	struct params *params = (struct params *)args;
         struct my_node *current_node; /* This will point on the actual data structures during the iteration */
         struct list_head *p; /* Temporary variable needed to iterate; */
+	int i;
 
-        list_for_each_entry(current_node, &my_list, list) {
-                if (current_node->data == 99999)
+	p = &params->list;
+	for (i = 0; i < params->segmentNb; i++) {
+		p = p->next;
+	}
+
+        for (i = 0; i < NUM_ITERS; i++) {
+		current_node = list_entry(p, struct my_node, list);
+                if (current_node->data == 99999) {
                         printk("End Search\n");
+			break;
+		}
+		p = p->next->next->next->next;
         }
 
 	return 0;
@@ -57,36 +68,37 @@ int search(void)
 
 int __init search_module_init(void){
         printk("Search Module - Hello Module!\n");
-        printk("Beginning");
-        thread1 = kthread_create(search(), NULL,"search");
-        thread2 = kthread_create(search(), NULL,"search");
-        thread3 = kthread_create(search(), NULL,"search");
-        thread4 = kthread_create(search(), NULL,"search");
-        /*thread5 = kthread_create(thread_fn(), NULL,"thread");
-        thread6 = kthread_create(thread_fn(), NULL,"thread");
-        thread7 = kthread_create(thread_fn(), NULL,"thread");
-        thread8 = kthread_create(thread_fn(), NULL,"thread");
-        thread9 = kthread_create(thread_fn(), NULL,"thread");
-        thread10 = kthread_create(thread_fn(), NULL,"thread");
-*/
-        kthread_bind(thread1, NULL);
-        kthread_bind(thread2, NULL);
-        kthread_bind(thread3, NULL);
-        kthread_bind(thread4, NULL);
-/*      kthread_bind(thread5, NULL);
-        kthread_bind(thread6, NULL);
-        kthread_bind(thread7, NULL);
-        kthread_bind(thread8, NULL);
-        kthread_bind(thread9, NULL);
-        kthread_bind(thread10, NULL);
-*/
 
-        printk("End");
+	struct my_node *data = kmalloc(sizeof(struct my_node) * 100000,GFP_KERNEL);
+        struct task_struct *threads[NUM_THREADS];
+        struct params *params = kmalloc(sizeof(struct params) * NUM_THREADS,GFP_KERNEL);
+        int i;
 
-        kthread_stop(thread1);
-        kthread_stop(thread2);
-        kthread_stop(thread3);
-        kthread_stop(thread4);
+        for (i = 0; i < NUM_THREADS; i++) {
+                init_completion(&params[i].comp);
+                params[i].data = &data[i * NUM_ITERS];
+                params[i].segmentNb = i;
+                threads[i] = kthread_run(&add, &params[i], "add");
+        }
+
+        for (i = 0; i < NUM_THREADS; i++) {
+          wait_for_completion(&params[i].comp);
+        }
+
+        for (i = 1; i < NUM_THREADS; i++) {
+                list_splice(&params[i].list, &params[0].list);
+        }
+
+	printk("Beginning\n");
+	printk("Start Search\n");
+
+	for (i = 0; i < NUM_THREADS; i++) {
+                params[i].segmentNb = i;
+		params[i].list = params[0].list;
+                threads[i] = kthread_run(&search, &params[i], "search");
+        }
+
+        printk("End\n");
 
         return 0;
 }
