@@ -60,7 +60,8 @@ int del(void *args)
         for (i = 0; i < NUM_ITERS; i++) {
                 current_node = list_entry(p, struct my_node, list);
                 if (current_node->data == 99999) {
-			list_del(p);
+			list_del_init(p);
+			current_node->data = outl;
                         printk("End Delete\n");
 			break;
                 }
@@ -94,6 +95,13 @@ int __init delete_module_init(void){
 
         printk("Beginning\n");
         printk("Start Delete\n");
+	struct my_node *current_node;
+        struct list_head *p;
+        i = 0;
+        list_for_each_entry(current_node, &params[0].list, list) {
+                i++;
+        }
+        printk("List Size = %d\n", i);
 
         for (i = 0; i < NUM_THREADS; i++) {
 	        params[i].segmentNb = i;
@@ -101,6 +109,11 @@ int __init delete_module_init(void){
 	        threads[i] = kthread_run(&del, &params[i], "delete");
 	}
 
+	i = 0;
+	list_for_each_entry(current_node, &params[0].list, list) {
+		i++;
+	}
+	printk("List Size = %d\n", i);
         printk("End\n");
 
         return 0;
