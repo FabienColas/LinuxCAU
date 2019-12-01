@@ -68,6 +68,13 @@ int __init add_module_init(void)
 		list_splice(&params[i].list, &params[0].list);
 	}
 	printk("End\n");
+        struct my_node *current_node;
+	i = 0;
+        list_for_each_entry(current_node, &params[0].list, list) {
+                i++;
+        }
+
+	printk("List Size = %d\n", i);
 	return 0;
 }
 

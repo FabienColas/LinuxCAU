@@ -94,7 +94,6 @@ int __init delete_module_init(void){
         }
 
         printk("Beginning\n");
-        printk("Start Delete\n");
 	struct my_node *current_node;
         struct list_head *p;
         i = 0;
@@ -102,6 +101,7 @@ int __init delete_module_init(void){
                 i++;
         }
         printk("List Size = %d\n", i);
+        printk("Start Delete\n");
 
         for (i = 0; i < NUM_THREADS; i++) {
 	        params[i].segmentNb = i;

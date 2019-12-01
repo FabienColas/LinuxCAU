@@ -57,7 +57,7 @@ int search(void *args)
         for (i = 0; i < NUM_ITERS; i++) {
 		current_node = list_entry(p, struct my_node, list);
                 if (current_node->data == 99999) {
-			printk("%d\n", current_node->data);
+			printk("%d found! \n", current_node->data);
 			printk("End Search\n");
 			break;
 		}
