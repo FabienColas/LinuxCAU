@@ -62,6 +62,7 @@ int __init add_module_init(void)
 
 	for (i = 0; i < NUM_THREADS; i++) {
 	  wait_for_completion(&params[i].comp);
+	  kthread_stop(threads[i]);
 	}
 
 	for (i = 1; i < NUM_THREADS; i++) {
@@ -75,6 +76,8 @@ int __init add_module_init(void)
         }
 
 	printk("List Size = %d\n", i);
+	kfree(data);
+	kfree(params);
 	return 0;
 }
 
